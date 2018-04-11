@@ -30,7 +30,7 @@ final class Mysql {
 //		$this->connect();
 //	}
         /*初始化函数*/
-       	public function init($db_host, $db_user, $db_pwd, $db_database, $conn, $coding) {
+    public function init($db_host, $db_user, $db_pwd, $db_database, $conn, $coding) {
 		$this->db_host = $db_host;
 		$this->db_user = $db_user;
 		$this->db_pwd = $db_pwd;
@@ -43,18 +43,18 @@ final class Mysql {
 	public function connect() {
 		if ($this->conn == "pconn") {
 			//永久链接
-			$this->conn = mysql_pconnect($this->db_host, $this->db_user, $this->db_pwd);
+			$this->conn = mysqli_pconnect($this->db_host, $this->db_user, $this->db_pwd);
 		} else {
 			//即时链接
-			$this->conn = mysql_connect($this->db_host, $this->db_user, $this->db_pwd);
+			$this->conn = mysqli_connect($this->db_host, $this->db_user, $this->db_pwd);
 		}
 
-		if (!mysql_select_db($this->db_database, $this->conn)) {
+		if (!mysqli_select_db( $this->conn,$this->db_database)) {
 			if ($this->show_error) {
 				$this->show_error("数据库不可用：", $this->db_database);
 			}
 		}
-		mysql_query("SET NAMES $this->coding");
+		//mysqli_query("SET NAMES $this->coding");
 	}
 
 	/*数据库执行语句，可执行查询添加修改删除等任何sql语句*/
@@ -64,7 +64,7 @@ final class Mysql {
 		}
 		$this->sql = $sql;
 
-		$result = mysql_query($this->sql, $this->conn);
+		$result = mysqli_query($this->conn,$this->sql);
 
 		if (!$result) {
 			//调试中使用，sql语句出错时会自动打印出来
@@ -102,7 +102,7 @@ final class Mysql {
 	public function databases() {
 		$rsPtr = mysql_list_dbs($this->conn);
 		$i = 0;
-		$cnt = mysql_num_rows($rsPtr);
+		$cnt = mysqli_num_rows($rsPtr);
 		while ($i < $cnt) {
 			$rs[] = mysql_db_name($rsPtr, $i);
 			$i++;
@@ -138,22 +138,23 @@ final class Mysql {
 
 	/*取得记录集,获取数组-索引和关联,使用$row['content'] */
 	public function fetch_array() {
-		return mysql_fetch_array($this->result);
+		return mysqli_fetch_array($this->result);
 	}
 
 	//获取关联数组,使用$row['字段名']
 	public function fetch_assoc() {
-		return mysql_fetch_assoc($this->result);
+		return mysqli_fetch_assoc($this->result);
 	}
+
 
 	//获取数字索引数组,使用$row[0],$row[1],$row[2]
 	public function fetch_row() {
-		return mysql_fetch_row($this->result);
+		return mysqli_fetch_row($this->result);
 	}
 
 	//获取对象数组,使用$row->content
 	public function fetch_Object() {
-		return mysql_fetch_object($this->result);
+		return mysqli_fetch_object($this->result);
 	}
 
 	//简化查询select
@@ -184,7 +185,10 @@ final class Mysql {
 		if ($this->query("INSERT INTO $table ($columnName) VALUES ($value)")) {
 			if (!empty ($url))
 				$this->Get_admin_msg($url, '添加成功！');
-		}
+            return true;
+		}else{
+            return false;
+        }
 	}
 
 	//简化修改update
@@ -219,7 +223,7 @@ final class Mysql {
 				$this->show_error("SQL语句错误", "暂时为空，没有任何内容！");
 			}
 		} else {
-			return mysql_num_rows($this->result);
+			return mysqli_num_rows($this->result);
 		}
 	}
 
@@ -240,7 +244,7 @@ final class Mysql {
 			echo "<div style='height:20px; background:#000000; border:1px #000000 solid'>";
 			echo "<font color='white'>错误号：12142</font>";
 			echo "</div><br />";
-			echo "错误原因：" . mysql_error() . "<br /><br />";
+			echo "错误原因：" . mysqli_error("") . "<br /><br />";
 			echo "<div style='height:20px; background:#FF0000; border:1px #FF0000 solid'>";
 			echo "<font color='white'>" . $message . "</font>";
 			echo "</div>";
@@ -334,7 +338,7 @@ final class Mysql {
 
 	//释放结果集
 	public function free() {
-		@ mysql_free_result($this->result);
+		@ mysqli_free_result($this->result);
 	}
 
 	//数据库选择
@@ -422,5 +426,17 @@ final class Mysql {
 		}
 	}
 
+    /**
+     * 获取SQl查询结果
+     * @param $sql
+     * @return array
+     */
+    function getQuery($sql){
+        $this->query($sql);
+        while($row=$this->result->fetch_assoc()){
+            $data[]=$row;
+        }
+        return $data;
+    }
 }
 

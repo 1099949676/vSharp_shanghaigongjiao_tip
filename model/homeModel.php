@@ -5,7 +5,7 @@
  * @author      yuansir <yuansir@live.cn/yuansir-web.com>
  * @version     1.0
  */
-class homeModel extends Model{
+class HomeModel extends Model{
         function test(){
                 echo "this is test homeModel";
         }
