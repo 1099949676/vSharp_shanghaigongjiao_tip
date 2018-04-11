@@ -6,8 +6,12 @@
  * @version     1.0
  */
 class Controller{
-        
+
+        public $controller=null;
+
         public function __construct() {
+            $controller=get_class($this);
+            $this->controller=str_replace("Controller","",$controller);
             header('Content-type:text/html;chartset=utf-8');
         }
         /**
@@ -135,6 +139,25 @@ class Controller{
             $tmpInfo = curl_exec($curl);     //返回api的json对象
             curl_close($curl);
             return $tmpInfo;
+        }
+
+
+        /**
+         * 获取页面 url
+         * @param $controller
+         * @param $action
+         * @param $param
+         */
+        final function genUrl($action,$param=array(),$controller=null){
+            $controller = $controller ? $controller:$this->controller;
+            return C('request_method')."://".$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF'].'?controller='.$controller.'&action='.$action.Sharp::formatArrToParamStr($param);;
+        }
+
+        /*
+         * 合并参数获取
+         */
+        final function input(){
+            return array_merge($_GET,$_POST);
         }
 
 }
