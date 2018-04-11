@@ -5,6 +5,7 @@
  * @author      yuansir <yuansir@live.cn/yuansir-web.com>
  * @version     1.0
  */
+
 define('SYSTEM_PATH', dirname(__FILE__));
 define('ROOT_PATH',  substr(SYSTEM_PATH, 0,-7));
 define('SYS_LIB_PATH', SYSTEM_PATH.'/lib');
@@ -14,13 +15,21 @@ define('CONTROLLER_PATH', ROOT_PATH.'/controller');
 define('MODEL_PATH', ROOT_PATH.'/model');
 define('VIEW_PATH', ROOT_PATH.'/view');
 define('LOG_PATH', ROOT_PATH.'/error/');
+
 final class Application {
         public static $_lib = null;
         public static $_config = null;
         public static function init() {
+                if(!self::$_config['debug']){
+                    error_reporting(E_ALL^E_NOTICE^E_WARNING);
+                }else{
+                    error_reporting(E_ALL);
+                }
                 self::setAutoLibs();
                 require SYS_CORE_PATH.'/model.php';
                 require SYS_CORE_PATH.'/controller.php';
+                require SYS_CORE_PATH.'/common.php';
+                require SYS_CORE_PATH.'/sharp.php';
                 
         }
         /**
@@ -29,9 +38,11 @@ final class Application {
          * @param       array   $config
          */
         public static function run($config){
+                date_default_timezone_set($config['system']['SERVER_TIMEZONE']);
                 self::$_config = $config['system'];
                 self::init();
                 self::autoload();
+                C($config);
                 self::$_lib['route']->setUrlType(self::$_config['route']['url_type']); //设置url的类型
                 $url_array = self::$_lib['route']->getUrlArray();                      //将url转发成数组
                 self::routeToCm($url_array);
@@ -56,6 +67,10 @@ final class Application {
                                 self::$_config['cache']['cache_mode']
                                 );
                 }
+
+                self::autoLoadControllerAndModel();
+
+
         }
         /**
          * 加载类库
@@ -84,6 +99,7 @@ final class Application {
          * @access      public 
          */
         public static function setAutoLibs(){
+
                 self::$_lib = array(
                     'route'              =>      SYS_LIB_PATH.'/lib_route.php',
                     'mysql'              =>      SYS_LIB_PATH.'/lib_mysql.php',
@@ -92,6 +108,31 @@ final class Application {
                     'thumbnail'          =>      SYS_LIB_PATH.'/lib_thumbnail.php',
                 );      
         }
+
+        /**
+         *自动加载controller类和Model类
+         */
+        public static function autoLoadControllerAndModel(){
+
+            $controller=$_GET['controller'];
+
+            $files=scandir(CONTROLLER_PATH);
+            foreach($files as $file){
+                if($file=='.' || $file=='..') continue;
+                //本次要请求的controller和Model会在routeToCm方法中进行require，所以本次不继续引入
+                if(!strpos('$'.$file,ucfirst($controller).'Controller'))
+                    require_once CONTROLLER_PATH.'/'.$file;
+            }
+
+            $files=scandir(MODEL_PATH);
+            foreach($files as $file){
+                if($file=='.' || $file=='..') continue;
+                if(!strpos('$'.$file,ucfirst($controller).'Model'))
+                    require_once MODEL_PATH.'/'.$file;
+            }
+        }
+
+
         /**
          * 根据URL分发到Controller和Model
          * @access      public 
@@ -109,7 +150,7 @@ final class Application {
                 }
                 
                 if(isset($url_array['controller'])){
-                        $controller = $model = $url_array['controller'];
+                        $controller = $model = ucfirst($url_array['controller']);
                         if($app){
                                 $controller_file = CONTROLLER_PATH.'/'.$app.'/'.$controller.'Controller.php';
                                 $model_file = MODEL_PATH.'/'.$app.'/'.$model.'Model.php';
