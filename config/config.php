@@ -11,9 +11,9 @@ $CONFIG=[
     'system'=>[
 
         'db'=>[
-            'db_host'           =>      'localhost',
+            'db_host'           =>      '115.29.55.209',
             'db_user'           =>      'root',
-            'db_password'       =>      'root',
+            'db_password'       =>      'password123456',
             'db_database'       =>      'db_shgjtx',
             'db_table_prefix'   =>      'tab_',
             'db_charset'        =>      'urf8',
@@ -21,8 +21,8 @@ $CONFIG=[
         ],
 
         'db_table'  =>[
-            'create_time'       =>'create_time',       //数据表的创建时间字段
-            'update_time'       =>'update_time',       //数据表的更新时间字段
+            'create_time'       =>'create_time',       //数据表的创建时间字段,为空表示系统不进行设置值，如果配置了字段，请确保系统中的每一个表都有该字段
+            'update_time'       =>'update_time',       //数据表的更新时间字段，为空表示系统不进行设置值，如果配置了字段，请确保系统中的每一个表都有该字段
         ],
 
 
@@ -46,16 +46,23 @@ $CONFIG=[
         ],
 
 
+        'authAccess'    =>[
+
+        ],
+
+
         'SERVER_TIMEZONE'=>'PRC',      //设置系统时区
 
-        'debug' =>true                 //设置的bug模式
+        'debug' =>false,                 //设置的bug模式
 
+        'accessDevice'  => 'wap',        //wap,pc,all
 
     ],
 
     'base_url'=>"http://115.29.55.209:8888/",  //项目基础地址
 
     'request_method' => 'http' ,               //系统协议
+
 ];
 
 
